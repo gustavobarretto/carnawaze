@@ -1,0 +1,33 @@
+{
+  "name": "hedone-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/hedone-fe",
+    "apps/hedone-be",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn dev:be\" \"yarn dev:fe\"",
+    "dev:be": "yarn workspace hedone-be dev",
+    "dev:fe": "yarn workspace hedone-fe start",
+    "dev:fe:web": "yarn workspace hedone-fe web",
+    "build": "yarn build:be && yarn build:fe",
+    "build:be": "yarn workspace hedone-be build",
+    "build:fe": "yarn workspace hedone-fe build",
+    "test": "yarn test:be && yarn test:fe",
+    "test:be": "yarn workspace hedone-be test",
+    "test:fe": "yarn workspace hedone-fe test",
+    "e2e": "yarn e2e:be && yarn e2e:fe",
+    "e2e:be": "yarn workspace hedone-be e2e",
+    "e2e:fe": "yarn workspace hedone-fe e2e",
+    "db:push": "yarn workspace hedone-be db:push",
+    "db:migrate": "yarn workspace hedone-be db:migrate",
+    "stop:fe": "npx kill-port 8081",
+    "stop:be": "npx kill-port 3001",
+    "stop": "npx kill-port 8081 && npx kill-port 3001"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "packageManager": "yarn@1.22.22"
+}

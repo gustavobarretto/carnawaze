@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  name                   String
+  passwordHash           String    @map("password_hash")
+  emailConfirmedAt       DateTime? @map("email_confirmed_at")
+  role                   String    @default("user") // "user" | "admin"
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+  pinReports             PinReport[]
+  emailConfirmationToken EmailConfirmationToken?
+}
+
+model Artist {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  pins      Pin[]
+  pinReports PinReport[]
+}
+
+model Pin {
+  id         String   @id @default(uuid())
+  artistId   String   @unique @map("artist_id")
+  artist     Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  lat        Float
+  lng        Float
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  expiresAt  DateTime @map("expires_at")
+  pinReports PinReport[]
+}
+
+model PinReport {
+  id        String   @id @default(uuid())
+  pinId     String?  @map("pin_id")
+  pin       Pin?     @relation(fields: [pinId], references: [id], onDelete: SetNull)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artistId  String   @map("artist_id")
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  lat       Float
+  lng       Float
+  type      String   // "create" | "confirm" | "incorrect"
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+model EmailConfirmationToken {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+}

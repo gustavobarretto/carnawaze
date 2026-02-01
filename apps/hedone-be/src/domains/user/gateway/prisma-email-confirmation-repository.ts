@@ -11,8 +11,9 @@ export const prismaEmailConfirmationRepository: EmailConfirmationRepository = {
   },
 
   async findByToken(token) {
+    const normalized = token.trim().toUpperCase();
     const row = await prisma.emailConfirmationToken.findUnique({
-      where: { token },
+      where: { token: normalized },
     });
     if (!row || row.expiresAt < new Date()) return null;
     return { userId: row.userId };

@@ -2,10 +2,12 @@ import * as bcrypt from 'bcryptjs';
 import { badRequest } from '../../../lib/errors.js';
 import type { UserRepository } from '../gateway/user-repository.js';
 import type { EmailConfirmationRepository } from '../gateway/email-confirmation-repository.js';
-import { randomToken } from '../../../lib/jwt.js';
+import { randomAlphanumericCode } from '../../../lib/jwt.js';
+import { sendConfirmationEmail } from '../../../lib/email.js';
+import type { Config } from '../../../config.js';
 
 const SALT_ROUNDS = 10;
-const TOKEN_EXPIRY_HOURS = 24;
+const CONFIRMATION_EXPIRY_MINUTES = 10;
 
 export interface CreateUserInput {
   email: string;
@@ -16,10 +18,10 @@ export interface CreateUserInput {
 export interface CreateUserOutput {
   user: { id: string; email: string; name: string; role: string; emailConfirmedAt: string | null };
   token: string;
-  confirmationToken?: string; // for dev: send in email link
 }
 
 export function createUserUseCase(
+  config: Config,
   userRepo: UserRepository,
   emailConfirmationRepo: EmailConfirmationRepository,
   jwtSecret: string,
@@ -37,9 +39,10 @@ export function createUserUseCase(
     });
 
     const token = signJwt(jwtSecret, { sub: user.id, email: user.email, role: user.role });
-    const confirmationToken = randomToken();
-    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
-    await emailConfirmationRepo.create(user.id, confirmationToken, expiresAt);
+    const code = randomAlphanumericCode(6);
+    const expiresAt = new Date(Date.now() + CONFIRMATION_EXPIRY_MINUTES * 60 * 1000);
+    await emailConfirmationRepo.create(user.id, code.toUpperCase(), expiresAt);
+    await sendConfirmationEmail(config, input.email, code);
 
     return {
       user: {
@@ -50,7 +53,6 @@ export function createUserUseCase(
         emailConfirmedAt: user.emailConfirmedAt?.toISOString() ?? null,
       },
       token,
-      confirmationToken, // In production, send via email; for dev we return for testing
     };
   };
 }

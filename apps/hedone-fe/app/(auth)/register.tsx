@@ -31,7 +31,7 @@ export default function RegisterScreen() {
     try {
       const res = await api.auth.register({ name: name.trim(), email: email.trim(), password });
       setAuth(res.user, res.token);
-      router.replace('/(app)/map' as any);
+      router.replace({ pathname: '/(auth)/confirm-email', params: { email: email.trim() } } as any);
     } catch (e: unknown) {
       const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message: string }).message) : 'Erro ao criar conta.';
       setError(msg);

@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcryptjs';
-import { badRequest, unauthorized } from '../../../lib/errors.js';
+import { AppError, unauthorized } from '../../../lib/errors.js';
 import type { UserRepository } from '../gateway/user-repository.js';
 import type { JwtPayload } from '../../../lib/jwt.js';
 
@@ -28,6 +28,10 @@ export function loginUseCase(
 
     const ok = await bcrypt.compare(input.password, user.passwordHash);
     if (!ok) throw unauthorized('Invalid email or password');
+
+    if (!user.emailConfirmedAt) {
+      throw new AppError('FORBIDDEN', 'EMAIL_NOT_CONFIRMED', 'Confirm your email to sign in. Check your inbox for the code.');
+    }
 
     const token = signJwt(jwtSecret, { sub: user.id, email: user.email, role: user.role });
     const out = {

@@ -131,6 +131,9 @@ export const api = {
     async confirmEmail(body: { token: string }) {
       return request<{ ok: boolean }>('/v1/auth/confirm-email', { method: 'POST', body });
     },
+    async resendConfirmation(body: { email: string }) {
+      return request<{ ok: boolean }>('/v1/auth/resend-confirmation', { method: 'POST', body });
+    },
   },
   users: {
     async me(token: string) {

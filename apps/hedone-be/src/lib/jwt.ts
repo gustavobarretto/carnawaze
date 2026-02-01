@@ -47,3 +47,13 @@ export function verifyJwt(secret: string, token: string): JwtPayload {
 export function randomToken(): string {
   return randomBytes(32).toString('hex');
 }
+
+const ALPHANUMERIC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Código alfanumérico para confirmação de e-mail (sem 0/O e 1/I para evitar confusão). */
+export function randomAlphanumericCode(length: number): string {
+  let out = '';
+  const bytes = randomBytes(length);
+  for (let i = 0; i < length; i++) out += ALPHANUMERIC[bytes[i]! % ALPHANUMERIC.length];
+  return out;
+}

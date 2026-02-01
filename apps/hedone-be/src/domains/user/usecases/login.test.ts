@@ -25,7 +25,7 @@ describe('loginUseCase', () => {
     });
   });
 
-  it('throws when password wrong', async () => {
+  it('throws when email not confirmed', async () => {
     mockUserRepo.findByEmail.mockResolvedValue({
       id: '1',
       email: 'a@b.com',
@@ -33,6 +33,22 @@ describe('loginUseCase', () => {
       passwordHash: 'hash',
       role: 'user',
       emailConfirmedAt: null,
+    });
+    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    const login = loginUseCase(mockUserRepo as any, 'secret', signJwt);
+    await expect(login({ email: 'a@b.com', password: 'pass' })).rejects.toMatchObject({
+      code: 'EMAIL_NOT_CONFIRMED',
+    });
+  });
+
+  it('throws when password wrong', async () => {
+    mockUserRepo.findByEmail.mockResolvedValue({
+      id: '1',
+      email: 'a@b.com',
+      name: 'A',
+      passwordHash: 'hash',
+      role: 'user',
+      emailConfirmedAt: new Date(),
     });
     vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
     const login = loginUseCase(mockUserRepo as any, 'secret', signJwt);

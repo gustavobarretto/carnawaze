@@ -5,6 +5,7 @@ import { useAuthStore } from '../src/store/auth';
 export default function Index() {
   const hydrated = useAuthStore((s) => s._hasHydrated);
   const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
 
   if (!hydrated) {
     return (
@@ -13,6 +14,10 @@ export default function Index() {
         <Text style={styles.loadingText}>Carregando...</Text>
       </View>
     );
+  }
+  if (token && user?.emailConfirmedAt) return <Redirect href="/(app)/map" />;
+  if (token && user && !user.emailConfirmedAt) {
+    return <Redirect href={{ pathname: '/(auth)/confirm-email', params: { email: user.email ?? '' } }} />;
   }
   if (token) return <Redirect href="/(app)/map" />;
   return <Redirect href="/(auth)/login" />;

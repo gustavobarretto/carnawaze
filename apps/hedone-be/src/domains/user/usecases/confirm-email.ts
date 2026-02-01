@@ -15,7 +15,8 @@ export function confirmEmailUseCase(
   emailConfirmationRepo: EmailConfirmationRepository
 ) {
   return async function confirmEmail(input: ConfirmEmailInput): Promise<ConfirmEmailOutput> {
-    const found = await emailConfirmationRepo.findByToken(input.token);
+    const code = input.token.trim().toUpperCase();
+    const found = await emailConfirmationRepo.findByToken(code);
     if (!found) throw badRequest('INVALID_OR_EXPIRED_TOKEN', 'Invalid or expired confirmation token');
 
     await userRepo.update(found.userId, { emailConfirmedAt: new Date() });

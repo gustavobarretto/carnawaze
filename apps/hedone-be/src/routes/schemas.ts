@@ -7,7 +7,11 @@ export const createUserBody = z.object({
 });
 
 export const confirmEmailBody = z.object({
-  token: z.string().min(1),
+  token: z.string().min(1).max(20),
+});
+
+export const resendConfirmationBody = z.object({
+  email: z.string().email(),
 });
 
 export const loginBody = z.object({

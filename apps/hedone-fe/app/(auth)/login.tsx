@@ -34,7 +34,12 @@ export default function LoginScreen() {
       setAuth(userToStore, res.token);
       router.replace('/(app)/map' as any);
     } catch (e: unknown) {
-      const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message: string }).message) : 'Erro ao entrar.';
+      const err = e as { code?: string; message?: string };
+      if (err?.code === 'EMAIL_NOT_CONFIRMED') {
+        router.replace({ pathname: '/(auth)/confirm-email', params: { email: email.trim() } } as any);
+        return;
+      }
+      const msg = err?.message ?? 'Erro ao entrar.';
       setError(msg);
     } finally {
       setLoading(false);

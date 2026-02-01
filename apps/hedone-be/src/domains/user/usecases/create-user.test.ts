@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createUserUseCase } from './create-user.js';
 
+vi.mock('../../../lib/email.js', () => ({ sendConfirmationEmail: vi.fn().mockResolvedValue(undefined) }));
+
+const mockConfig = { NODE_ENV: 'test' } as any;
+
 const mockUserRepo = {
   create: vi.fn(),
   findByEmail: vi.fn(),
@@ -24,6 +28,7 @@ describe('createUserUseCase', () => {
   it('throws when email already exists', async () => {
     mockUserRepo.findByEmail.mockResolvedValue({ id: '1', email: 'a@b.com' });
     const createUser = createUserUseCase(
+      mockConfig,
       mockUserRepo as any,
       mockEmailRepo as any,
       'secret',
@@ -45,6 +50,7 @@ describe('createUserUseCase', () => {
       emailConfirmedAt: null,
     });
     const createUser = createUserUseCase(
+      mockConfig,
       mockUserRepo as any,
       mockEmailRepo as any,
       'secret',

@@ -1,7 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+import { loadConfig } from '../config.js';
 import { createUserUseCase } from '../domains/user/usecases/create-user.js';
 import { loginUseCase } from '../domains/user/usecases/login.js';
 import { confirmEmailUseCase } from '../domains/user/usecases/confirm-email.js';
+import { resendConfirmationUseCase } from '../domains/user/usecases/resend-confirmation.js';
 import { getMeUseCase } from '../domains/user/usecases/get-me.js';
 import { updateMeUseCase } from '../domains/user/usecases/update-me.js';
 import { prismaUserRepository } from '../domains/user/gateway/prisma-user-repository.js';
@@ -11,6 +13,7 @@ import { authPreHandler } from './auth-plugin.js';
 import {
   createUserBody,
   confirmEmailBody,
+  resendConfirmationBody,
   loginBody,
   updateMeBody,
 } from './schemas.js';
@@ -20,11 +23,13 @@ export async function userRoutes(
   fastify: FastifyInstance,
   opts: { jwtSecret: string }
 ) {
+  const config = loadConfig();
   const userRepo = prismaUserRepository;
   const emailConfirmationRepo = prismaEmailConfirmationRepository;
-  const createUser = createUserUseCase(userRepo, emailConfirmationRepo, opts.jwtSecret, signJwt);
+  const createUser = createUserUseCase(config, userRepo, emailConfirmationRepo, opts.jwtSecret, signJwt);
   const login = loginUseCase(userRepo, opts.jwtSecret, signJwt);
   const confirmEmail = confirmEmailUseCase(userRepo, emailConfirmationRepo);
+  const resendConfirmation = resendConfirmationUseCase(config, userRepo, emailConfirmationRepo);
   const getMe = getMeUseCase(userRepo);
   const updateMe = updateMeUseCase(userRepo, emailConfirmationRepo);
 
@@ -100,6 +105,38 @@ export async function userRoutes(
       } catch (e) {
         if (e instanceof AppError) {
           return reply.code(400).send(e.toJSON());
+        }
+        throw e;
+      }
+    }
+  );
+
+  fastify.post(
+    '/v1/auth/resend-confirmation',
+    {
+      schema: {
+        description: 'Resend email confirmation code',
+        body: { type: 'object', required: ['email'], properties: { email: { type: 'string', format: 'email' } } },
+        response: { 200: { type: 'object', properties: { ok: { type: 'boolean' } } } },
+      },
+    },
+    async (request, reply) => {
+      const parsed = resendConfirmationBody.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          status: 'BAD_REQUEST',
+          code: 'VALIDATION_ERROR',
+          message: 'Validation failed',
+          details: parsed.error.flatten(),
+        });
+      }
+      try {
+        await resendConfirmation(parsed.data);
+        return reply.send({ ok: true });
+      } catch (e) {
+        if (e instanceof AppError) {
+          const code = e.status === 'NOT_FOUND' ? 404 : 400;
+          return reply.code(code).send(e.toJSON());
         }
         throw e;
       }

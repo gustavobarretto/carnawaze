@@ -30,9 +30,16 @@ export const prismaPinReportRepository: PinReportRepository = {
     });
     return count > 0;
   },
+
+  async hasUserReportedPin(userId, pinId) {
+    const count = await prisma.pinReport.count({
+      where: { userId, pinId, type: { in: ['create', 'confirm'] } },
+    });
+    return count > 0;
+  },
 };
 
-const pinInclude = { artist: { select: { id: true, name: true } }, _count: { select: { pinReports: true } } };
+const pinInclude = { artist: { select: { id: true, name: true } } };
 
 export const prismaPinRepository: PinRepository = {
   async findActive() {
@@ -79,6 +86,20 @@ export const prismaPinRepository: PinRepository = {
   },
 
   async getReportCount(pinId) {
-    return prisma.pinReport.count({ where: { pinId } });
+    return prisma.pinReport.count({
+      where: { pinId, type: { in: ['create', 'confirm'] } },
+    });
+  },
+
+  async getReportCounts(pinIds) {
+    if (pinIds.length === 0) return {};
+    const rows = await prisma.pinReport.groupBy({
+      by: ['pinId'],
+      where: { pinId: { in: pinIds }, type: { in: ['create', 'confirm'] } },
+      _count: { id: true },
+    });
+    const out: Record<string, number> = {};
+    for (const r of rows) if (r.pinId != null) out[r.pinId] = r._count.id;
+    return out;
   },
 };

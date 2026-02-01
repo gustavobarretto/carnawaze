@@ -1,1 +1,6 @@
 node_modules
+
+# Variáveis de ambiente (não versionar; use .env.example como referência)
+.env
+.env.local
+.env.*.local

@@ -19,6 +19,7 @@ export function listPinsUseCase(pinRepo: PinRepository) {
   return async function listPins(): Promise<ListPinsOutput> {
     await pinRepo.deleteExpired();
     const pins = await pinRepo.findActive();
+    const counts = await pinRepo.getReportCounts(pins.map((p) => p.id));
     return {
       pins: pins.map((p) => ({
         id: p.id,
@@ -26,7 +27,7 @@ export function listPinsUseCase(pinRepo: PinRepository) {
         artist: p.artist,
         lat: p.lat,
         lng: p.lng,
-        reportCount: p._count?.pinReports ?? 0,
+        reportCount: counts[p.id] ?? 0,
         updatedAt: p.updatedAt.toISOString(),
         expiresAt: p.expiresAt.toISOString(),
       })),

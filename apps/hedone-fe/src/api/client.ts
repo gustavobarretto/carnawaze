@@ -1,9 +1,43 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+const API_PORT = 3001;
+
+let _cachedApiBase: string | null = null;
 
 function getApiBase(): string {
-  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
-  if (Platform.OS === 'android') return 'http://10.0.2.2:3001';
-  return 'http://localhost:3001';
+  if (_cachedApiBase) return _cachedApiBase;
+
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl) {
+    _cachedApiBase = envUrl;
+    if (__DEV__) console.log('[API] base URL:', envUrl, '(from EXPO_PUBLIC_API_URL)');
+    return _cachedApiBase;
+  }
+
+  if (Platform.OS === 'android') {
+    _cachedApiBase = `http://10.0.2.2:${API_PORT}`;
+    if (__DEV__) console.log('[API] base URL:', _cachedApiBase, '(Android emulator)');
+    return _cachedApiBase;
+  }
+
+  if (Platform.OS === 'ios' && __DEV__) {
+    const hostUri =
+      (Constants.expoConfig as { hostUri?: string } | null)?.hostUri ??
+      (Constants as { manifest?: { hostUri?: string } }).manifest?.hostUri;
+    if (hostUri) {
+      const host = hostUri.split(':')[0];
+      if (host) {
+        _cachedApiBase = `http://${host}:${API_PORT}`;
+        console.log('[API] base URL:', _cachedApiBase, '(iPhone → mesmo host do Expo)');
+        return _cachedApiBase;
+      }
+    }
+    console.warn('[API] No hostUri on iPhone. Set EXPO_PUBLIC_API_URL=http://SEU_IP:3001 no .env');
+  }
+
+  _cachedApiBase = `http://localhost:${API_PORT}`;
+  return _cachedApiBase;
 }
 
 class ApiError extends Error {

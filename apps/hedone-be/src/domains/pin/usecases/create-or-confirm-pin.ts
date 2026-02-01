@@ -73,8 +73,8 @@ export function createOrConfirmPinUseCase(
     }
 
     if (input.type === 'confirm') {
-      const alreadyConfirmed = await pinReportRepo.hasUserConfirmedPin(input.userId, pin.id);
-      if (alreadyConfirmed) {
+      const alreadyReported = await pinReportRepo.hasUserReportedPin(input.userId, pin.id);
+      if (alreadyReported) {
         const reportCount = await pinRepo.getReportCount(pin.id);
         return {
           pin: {

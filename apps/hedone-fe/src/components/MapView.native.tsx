@@ -12,14 +12,21 @@ const FAROL_DA_BARRA = {
 
 const TRUCK_ICON_SIZE = 40;
 
-/** Estilo do mapa: ruas em cinza em vez de preto (evita manchas pretas). */
+/** Estilo do mapa: ruas em cinza em vez de preto (evita manchas pretas de renderização). */
 const MAP_STYLE_STREETS_GRAY = [
   { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#9e9e9e' }] },
   { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#bdbdbd' }] },
   { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'road.arterial', elementType: 'geometry.stroke', stylers: [{ color: '#bdbdbd' }] },
   { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#757575' }] },
   { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'road.highway.controlled_access', elementType: 'geometry', stylers: [{ color: '#757575' }] },
+  { featureType: 'road.highway.controlled_access', elementType: 'geometry.stroke', stylers: [{ color: '#9e9e9e' }] },
   { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#bdbdbd' }] },
+  { featureType: 'road.local', elementType: 'geometry.stroke', stylers: [{ color: '#e0e0e0' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#9e9e9e' }] },
+  { featureType: 'transit', elementType: 'geometry.stroke', stylers: [{ color: '#bdbdbd' }] },
+  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f5f5f5' }] },
 ];
 
 export interface Pin {

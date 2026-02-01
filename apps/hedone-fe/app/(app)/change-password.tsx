@@ -87,7 +87,7 @@ export default function ChangePasswordScreen() {
       <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSave} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Alterar senha</Text>}
       </TouchableOpacity>
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(app)/profile' as any)}>
         <Text style={styles.backText}>Voltar ao perfil</Text>
       </TouchableOpacity>
     </View>
